@@ -1,0 +1,9 @@
+src/
+test/
+*.log
+.env
+.env.*
+coverage/
+tsconfig.json
+tsup.config.ts
+.eslintrc.cjs
