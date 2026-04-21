@@ -2,12 +2,12 @@
 
 Headless TypeScript SDK for FundStacks donation flows.
 
-This package provides framework-agnostic primitives to build and execute donation transactions (`hype`) against the NexusEngine contract without coupling to React, wallet UI, or a specific app runtime.
+This package provides framework-agnostic primitives to build and execute Stacks contract-call donations (`donate-stx` / `donate-sbtc`) without coupling to React, wallet UI, or a specific app runtime.
 
 ## Installation
 
 ```bash
-npm install fundstacks-headless-sdk viem
+npm install fundstacks-headless-sdk
 ```
 
 ## Quick Start
@@ -16,15 +16,17 @@ npm install fundstacks-headless-sdk viem
 import { createClient, donate } from "fundstacks-headless-sdk";
 
 const client = createClient({
-  contractAddress: "0xYourNexusEngineAddress",
-  chainId: 10143,
-  account: "0xYourWalletAddress",
-  walletClient // viem wallet client
+  contractAddress: "ST000000000000000000002AMW42H",
+  contractName: "fundraising",
+  network: "testnet",
+  walletClient // your Stacks wallet adapter
 });
 
-const txHash = await donate(client, {
-  dropId: 42n,
-  hypeStakeWei: 10_000_000_000_000_000n
+const txId = await donate(client, {
+  campaignId: 42n,
+  amount: 1_000_000n, // microstacks
+  asset: "stx",
+  senderAddress: "ST2..."
 });
 ```
 
@@ -35,24 +37,26 @@ Use this when your app signs/broadcasts transactions outside the SDK:
 ```ts
 import { buildDonateTx } from "fundstacks-headless-sdk";
 
-const tx = buildDonateTx("0xYourNexusEngineAddress", {
-  dropId: 42,
-  hypeStakeWei: 10_000_000_000_000_000n
+const txOptions = buildDonateTx(client, {
+  campaignId: 42,
+  amount: 1_000_000n, // microstacks or sats
+  asset: "stx",
+  senderAddress: "ST2..."
 });
 
-// tx = { to, data, value }
+// txOptions = { contractAddress, contractName, functionName, functionArgs, postConditions, ... }
 ```
 
 ## API
 
 - `createClient(config)`  
   Create a reusable SDK client with contract/network/signer settings.
-- `buildDonateTx(contractAddress, input)`  
-  Build a headless donation (`hype`) transaction payload.
+- `buildDonateTx(client, input)`  
+  Build headless Stacks contract-call donation options.
 - `donate(client, input)`  
-  Execute donation through a provided wallet client.
-- `NEXUS_ENGINE_ABI`  
-  Minimal ABI surface used by this MVP.
+  Execute donation through a provided wallet client adapter.
+- `DONATE_FUNCTIONS`  
+  Function names used by the donation builders.
 
 ## Compatibility
 
@@ -70,9 +74,9 @@ npm run build
 
 ## Roadmap
 
-- Add typed read helpers (`getDrop`, `getHypeRecord`, `isFlashWindowOpen`)
+- Add typed read helpers for campaign state
 - Add create/withdraw/refund transaction builders
-- Add event decode utilities
+- Add typed wallet adapters for `@stacks/connect`
 
 ## License
 

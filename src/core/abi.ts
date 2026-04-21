@@ -1,9 +1,4 @@
-export const NEXUS_ENGINE_ABI = [
-  {
-    type: "function",
-    name: "hype",
-    inputs: [{ name: "dropId", type: "uint256", internalType: "uint256" }],
-    outputs: [],
-    stateMutability: "payable"
-  }
-] as const;
+export const DONATE_FUNCTIONS = {
+  stx: "donate-stx",
+  sbtc: "donate-sbtc"
+} as const;

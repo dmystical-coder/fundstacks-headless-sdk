@@ -1,27 +1,38 @@
-export type Address = `0x${string}`;
+export type StacksAddress = string;
+export type StacksNetwork = "mainnet" | "testnet" | "devnet";
+export type DonationAsset = "stx" | "sbtc";
+
+export interface ContractCallOptions {
+  contractAddress: string;
+  contractName: string;
+  functionName: string;
+  functionArgs: unknown[];
+  network?: StacksNetwork | string;
+  anchorMode?: number;
+  postConditions?: unknown[];
+  postConditionMode?: number | "allow" | "deny";
+  sponsored?: boolean;
+  onFinish?: (data: { txId: string }) => void;
+  onCancel?: () => void;
+}
+
+export interface WalletClient {
+  callContract: (
+    request: ContractCallOptions
+  ) => Promise<string | { txid?: string; txId?: string } | void>;
+}
 
 export interface FundstacksClientConfig {
-  contractAddress: Address;
-  chainId?: number;
-  walletClient?: {
-    sendTransaction: (request: {
-      account?: Address;
-      to: Address;
-      data: `0x${string}`;
-      value: bigint;
-      chain?: { id: number };
-    }) => Promise<`0x${string}`>;
-  };
-  account?: Address;
+  contractAddress: string;
+  contractName: string;
+  network?: StacksNetwork;
+  walletClient?: WalletClient;
 }
 
 export interface BuildDonateTxInput {
-  dropId: bigint | number | string;
-  hypeStakeWei: bigint;
-}
-
-export interface DonateTx {
-  to: Address;
-  data: `0x${string}`;
-  value: bigint;
+  campaignId: bigint | number | string;
+  amount: bigint | number | string;
+  asset: DonationAsset;
+  senderAddress: StacksAddress;
+  sbtcAsset?: string;
 }
