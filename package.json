@@ -1,0 +1,51 @@
+{
+  "name": "fundstacks-headless-sdk",
+  "version": "0.1.0",
+  "description": "Headless TypeScript SDK for FundStacks donation flows.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsup",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest run --pool=threads",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "fundraising",
+    "sdk",
+    "web3",
+    "headless",
+    "viem"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "viem": "^2.22.22"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "eslint": "^8.57.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
