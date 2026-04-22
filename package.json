@@ -1,6 +1,6 @@
 {
   "name": "@dmystical-coder/fundstacks-headless-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Headless TypeScript SDK for FundStacks donation flows.",
   "type": "module",
   "main": "./dist/index.cjs",
