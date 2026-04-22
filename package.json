@@ -39,8 +39,7 @@
     "url": "git+https://github.com/dmystical-coder/fundstacks-headless-sdk.git"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "engines": {
     "node": ">=18"
