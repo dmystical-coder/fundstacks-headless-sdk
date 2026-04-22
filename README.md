@@ -1,4 +1,4 @@
-# fundstacks-headless-sdk
+# @dmystical-coder/fundstacks-headless-sdk
 
 Headless TypeScript SDK for FundStacks donation flows.
 
@@ -7,13 +7,13 @@ This package provides framework-agnostic primitives to build and execute Stacks 
 ## Installation
 
 ```bash
-npm install fundstacks-headless-sdk
+npm install @dmystical-coder/fundstacks-headless-sdk
 ```
 
 ## Quick Start
 
 ```ts
-import { createClient, donate } from "fundstacks-headless-sdk";
+import { createClient, donate } from "@dmystical-coder/fundstacks-headless-sdk";
 
 const client = createClient({
   contractAddress: "ST000000000000000000002AMW42H",
@@ -35,7 +35,7 @@ const txId = await donate(client, {
 Use this when your app signs/broadcasts transactions outside the SDK:
 
 ```ts
-import { buildDonateTx } from "fundstacks-headless-sdk";
+import { buildDonateTx } from "@dmystical-coder/fundstacks-headless-sdk";
 
 const txOptions = buildDonateTx(client, {
   campaignId: 42,
