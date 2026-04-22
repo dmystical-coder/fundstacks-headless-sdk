@@ -1,5 +1,9 @@
 # @dmystical-coder/fundstacks-headless-sdk
 
+[![npm version](https://img.shields.io/npm/v/%40dmystical-coder%2Ffundstacks-headless-sdk)](https://www.npmjs.com/package/@dmystical-coder/fundstacks-headless-sdk)
+[![npm monthly downloads](https://img.shields.io/npm/dm/%40dmystical-coder%2Ffundstacks-headless-sdk)](https://www.npmjs.com/package/@dmystical-coder/fundstacks-headless-sdk)
+[![npm total downloads](https://img.shields.io/npm/dt/%40dmystical-coder%2Ffundstacks-headless-sdk)](https://www.npmjs.com/package/@dmystical-coder/fundstacks-headless-sdk)
+
 Headless TypeScript SDK for FundStacks donation flows.
 
 This package provides framework-agnostic primitives to build and execute Stacks contract-call donations (`donate-stx` / `donate-sbtc`) without coupling to React, wallet UI, or a specific app runtime.
