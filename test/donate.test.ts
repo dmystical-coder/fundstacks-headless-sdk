@@ -153,4 +153,188 @@ describe("donate", () => {
     ).rejects.toMatchObject({ code: "INVALID_AMOUNT" });
     expect(callContract).not.toHaveBeenCalled();
   });
+
+  it("resolves transaction id from txId (alternate casing)", async () => {
+    const callContract = vi.fn().mockResolvedValue({
+      txId: "0xddaa"
+    });
+    const client = createClient({
+      contractAddress: "ST000000000000000000002AMW42H",
+      contractName: "fundraising",
+      walletClient: { callContract }
+    });
+    const id = await donate(client, {
+      campaignId: 1n,
+      amount: 1n,
+      asset: "stx",
+      senderAddress: "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG"
+    });
+    expect(id).toBe("0xddaa");
+  });
+
+  it("returns undefined when the wallet returns void", async () => {
+    const callContract = vi.fn().mockResolvedValue(undefined);
+    const client = createClient({
+      contractAddress: "ST000000000000000000002AMW42H",
+      contractName: "fundraising",
+      walletClient: { callContract }
+    });
+    await expect(
+      donate(client, {
+        campaignId: 1n,
+        amount: 1n,
+        asset: "stx",
+        senderAddress: "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG"
+      })
+    ).resolves.toBeUndefined();
+  });
+
+  it("returns undefined when the wallet returns an empty object", async () => {
+    const callContract = vi.fn().mockResolvedValue({});
+    const client = createClient({
+      contractAddress: "ST000000000000000000002AMW42H",
+      contractName: "fundraising",
+      walletClient: { callContract }
+    });
+    await expect(
+      donate(client, {
+        campaignId: 1n,
+        amount: 1n,
+        asset: "stx",
+        senderAddress: "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG"
+      })
+    ).resolves.toBeUndefined();
+  });
+
+  it("throws MISSING_TX_ID when strictTxId and no id is returned", async () => {
+    const callContract = vi.fn().mockResolvedValue({});
+    const client = createClient({
+      contractAddress: "ST000000000000000000002AMW42H",
+      contractName: "fundraising",
+      strictTxId: true,
+      walletClient: { callContract }
+    });
+    await expect(
+      donate(client, {
+        campaignId: 1n,
+        amount: 1n,
+        asset: "stx",
+        senderAddress: "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG"
+      })
+    ).rejects.toMatchObject({ code: "MISSING_TX_ID" });
+  });
+
+  it("donate() strictTxId option overrides client.strictTxId", async () => {
+    const callContract = vi.fn().mockResolvedValue({});
+    const client = createClient({
+      contractAddress: "ST000000000000000000002AMW42H",
+      contractName: "fundraising",
+      strictTxId: true,
+      walletClient: { callContract }
+    });
+    await expect(
+      donate(
+        client,
+        {
+          campaignId: 1n,
+          amount: 1n,
+          asset: "stx",
+          senderAddress: "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG"
+        },
+        { strictTxId: false }
+      )
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe("buildDonateTx sBTC", () => {
+  const stx = {
+    contractAddress: "ST000000000000000000002AMW42H" as const,
+    contractName: "fundraising" as const
+  };
+  const sender = "ST2J8EVYHP2JXQ6XEAH2V7W4N19WQQ9Q0DXM1ANQG";
+  const sbtc = "ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token";
+
+  it("builds donate-sbtc with FT post-condition and explicit sbtcAsset", () => {
+    const client = createClient({ ...stx });
+    const tx = buildDonateTx(client, {
+      campaignId: 1,
+      amount: 1_000n,
+      asset: "sbtc",
+      senderAddress: sender,
+      sbtcAsset: sbtc
+    });
+    expect(tx.functionName).toBe("donate-sbtc");
+    expect(tx.postConditions).toHaveLength(1);
+    expect(tx.postConditions![0]).toEqual({
+      type: "ft-postcondition",
+      address: sender,
+      condition: "eq",
+      asset: sbtc,
+      amount: 1_000n
+    });
+  });
+
+  it("uses testnet default sbtcAsset when network is testnet and none is set", () => {
+    const client = createClient({ ...stx, network: "testnet" });
+    const tx = buildDonateTx(client, {
+      campaignId: 1,
+      amount: 100n,
+      asset: "sbtc",
+      senderAddress: sender
+    });
+    const pc = tx.postConditions![0] as { asset: string };
+    expect(pc.asset).toBe("ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token");
+  });
+
+  it("uses mainnet default sbtcAsset when network is mainnet and none is set", () => {
+    const client = createClient({ ...stx, network: "mainnet" });
+    const tx = buildDonateTx(client, {
+      campaignId: 1,
+      amount: 100n,
+      asset: "sbtc",
+      senderAddress: sender
+    });
+    const pc = tx.postConditions![0] as { asset: string };
+    expect(pc.asset).toBe("SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token");
+  });
+
+  it("uses client sbtcAsset when the donation input omits it", () => {
+    const client = createClient({ ...stx, sbtcAsset: "STCUSTOM.sbtc-token" });
+    const tx = buildDonateTx(client, {
+      campaignId: 1,
+      amount: 1n,
+      asset: "sbtc",
+      senderAddress: sender
+    });
+    const pc = tx.postConditions![0] as { asset: string };
+    expect(pc.asset).toBe("STCUSTOM.sbtc-token");
+  });
+
+  it("input sbtcAsset overrides client default", () => {
+    const client = createClient({ ...stx, sbtcAsset: "STCLIENT.sbtc-token" });
+    const tx = buildDonateTx(client, {
+      campaignId: 1,
+      amount: 1n,
+      asset: "sbtc",
+      senderAddress: sender,
+      sbtcAsset: sbtc
+    });
+    const pc = tx.postConditions![0] as { asset: string };
+    expect(pc.asset).toBe(sbtc);
+  });
+
+  it("throws MISSING_SBTC_ASSET on devnet when no sbtcAsset is available", () => {
+    const client = createClient({ ...stx, network: "devnet" });
+    expectThrowsFundstacks(
+      () =>
+        buildDonateTx(client, {
+          campaignId: 1,
+          amount: 1n,
+          asset: "sbtc",
+          senderAddress: sender
+        }),
+      "MISSING_SBTC_ASSET"
+    );
+  });
 });

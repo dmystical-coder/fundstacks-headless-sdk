@@ -7,36 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+_(Nothing yet.)_
 
-- [CHANGELOG.md](./CHANGELOG.md) (this file) for version history.
-- [docs/release-0.2-checklist.md](./docs/release-0.2-checklist.md) — P0 / P1 / P2 scope for 0.2.0.
-- [docs/github-milestone-0.2.md](./docs/github-milestone-0.2.md) — GitHub milestone setup and copy-paste issue bodies.
-- [.github/workflows/ci.yml](./.github/workflows/ci.yml) — CI (lint, test, build) on `main` and PRs.
-
-## [0.2.0] — _planned (not yet published)_
-
-_Target: next minor release after `0.1.1`. Tracking: [docs/release-0.2-checklist.md](./docs/release-0.2-checklist.md)._
+## [0.2.0] — 2026-04-24
 
 ### Added
 
-- _(draft)_ Structured errors (`FundstacksError` + `code`) for validation and wallet/tx edge cases.
-- _(draft)_ Input validation: `amount > 0`, `campaignId >= 1`, clearer errors for invalid `BigInt` strings.
-- _(draft)_ Optional default `sbtcAsset` / network-aware sBTC defaults on the client to reduce required call-site fields.
-- _(draft)_ Export `FundstacksClient` from the public entry; `sideEffects: false` in `package.json` where applicable.
-- _(draft)_ Expanded tests: sBTC path, invalid inputs, wallet return shapes (`txId` / `txid` / void).
-- _(draft)_ CI (lint, test, build) on push/PR.
-- _(draft)_ README fixes: define `walletClient` in Quick Start; document `donate()` when the tx id is missing; note µSTX / sats units explicitly.
+- `FundstacksError` with `code` for validation and optional strict transaction id handling (`INVALID_AMOUNT`, `INVALID_CAMPAIGN_ID`, `INVALID_UINT_STRING`, `MISSING_SBTC_ASSET`, `MISSING_TX_ID`).
+- Input validation: `amount > 0`, `campaignId >= 1`; invalid `BigInt` input strings map to `INVALID_UINT_STRING`.
+- `createClient` options: `sbtcAsset`, `strictTxId`; `donate(..., { strictTxId })` overrides client default.
+- Default sBTC SIP-010 contract id for `mainnet` / `testnet` via `defaultSbtcAssetForNetwork()` and automatic resolution when building sBTC donations.
+- Expanded tests: sBTC post-conditions, client/network defaults, wallet return shapes (`txid` / `txId` / void / `{}`), `strictTxId`.
+- Public type export: `FundstacksClient`; `sideEffects: false` in `package.json`.
+- CI (lint, test, build) on `main` and PRs for Node.js 18.x and 20.x ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ### Changed
 
-- _(draft)_ Clarify `donate()` behavior when `callContract` returns no id (document vs throw via option such as `strictTxId`).
-
-### Removed
-
-- _(none planned)_
-
----
+- README: copy-paste Quick Start with stub `walletClient`; units (µSTX / sats); `donate()` when the result has no tx id; sBTC asset resolution; error code table.
 
 ## [0.1.1] — 2025 (see git tag)
 
