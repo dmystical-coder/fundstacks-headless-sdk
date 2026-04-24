@@ -1,7 +1,8 @@
 import { DONATE_FUNCTIONS } from "./abi";
 import type { FundstacksClient } from "./client";
 import { FundstacksError } from "./errors";
-import type { BuildDonateTxInput, ContractCallOptions } from "./types";
+import { defaultSbtcAssetForNetwork } from "./sbtc-defaults";
+import type { BuildDonateTxInput, ContractCallOptions, DonateOptions } from "./types";
 
 const ANCHOR_MODE_ANY = 3;
 const POST_CONDITION_MODE_DENY = "deny";
@@ -35,20 +36,28 @@ function parseCampaignId(value: BuildDonateTxInput["campaignId"]): bigint {
   return id;
 }
 
-function toSbtcPostCondition(input: BuildDonateTxInput, amount: bigint): unknown {
-  if (!input.sbtcAsset) {
-    throw new Error(
-      "sbtcAsset is required when building an sBTC donation transaction."
-    );
-  }
-
+function toSbtcPostCondition(sbtcAsset: string, input: BuildDonateTxInput, amount: bigint): unknown {
   return {
     type: "ft-postcondition",
     address: input.senderAddress,
     condition: "eq",
-    asset: input.sbtcAsset,
+    asset: sbtcAsset,
     amount
   };
+}
+
+function resolveSbtcAsset(client: FundstacksClient, input: BuildDonateTxInput): string {
+  return (
+    input.sbtcAsset ??
+    client.sbtcAsset ??
+    defaultSbtcAssetForNetwork(client.network) ??
+    (() => {
+      throw new FundstacksError(
+        "sbtcAsset is required for sBTC donations (set on createClient, the donation input, or use mainnet/testnet for a default)",
+        "MISSING_SBTC_ASSET"
+      );
+    })()
+  );
 }
 
 function toUintCv(value: bigint): { type: "uint"; value: bigint } {
@@ -90,13 +99,26 @@ export function buildDonateTx(client: FundstacksClient, input: BuildDonateTxInpu
     functionArgs: [toUintCv(campaignId), toUintCv(amount)],
     postConditions: isStx
       ? [toStxPostCondition(input.senderAddress, amount)]
-      : [toSbtcPostCondition(input, amount)]
+      : [toSbtcPostCondition(resolveSbtcAsset(client, input), input, amount)]
   };
+}
+
+function extractTxId(
+  result: string | { txid?: string; txId?: string } | void
+): string | undefined {
+  if (typeof result === "string" && result.length > 0) {
+    return result;
+  }
+  if (result && typeof result === "object") {
+    return result.txid ?? result.txId;
+  }
+  return undefined;
 }
 
 export async function donate(
   client: FundstacksClient,
-  input: BuildDonateTxInput
+  input: BuildDonateTxInput,
+  options?: DonateOptions
 ): Promise<string | undefined> {
   if (!client.walletClient) {
     throw new Error(
@@ -106,14 +128,12 @@ export async function donate(
 
   const txOptions = buildDonateTx(client, input);
   const result = await client.walletClient.callContract(txOptions);
+  const id = extractTxId(result);
+  const strict = options?.strictTxId ?? client.strictTxId;
 
-  if (typeof result === "string") {
-    return result;
+  if (strict && (id === undefined || id === "")) {
+    throw new FundstacksError("Wallet did not return a transaction id", "MISSING_TX_ID");
   }
 
-  if (result && typeof result === "object") {
-    return result.txid ?? result.txId;
-  }
-
-  return undefined;
+  return id;
 }

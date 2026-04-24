@@ -26,7 +26,18 @@ export interface FundstacksClientConfig {
   contractAddress: string;
   contractName: string;
   network?: StacksNetwork;
+  /** Default SIP-010 asset id for sBTC donations; per-call `sbtcAsset` overrides. */
+  sbtcAsset?: string;
+  /**
+   * When set, `donate()` throws `FundstacksError` with `MISSING_TX_ID` if the wallet
+   * returns no transaction id. Overridable per `donate(..., { strictTxId })`.
+   */
+  strictTxId?: boolean;
   walletClient?: WalletClient;
+}
+
+export interface DonateOptions {
+  strictTxId?: boolean;
 }
 
 export interface BuildDonateTxInput {
