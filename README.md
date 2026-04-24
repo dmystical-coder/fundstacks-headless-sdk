@@ -14,6 +14,12 @@ This package provides framework-agnostic primitives to build and execute Stacks 
 npm install @dmystical-coder/fundstacks-headless-sdk
 ```
 
+## Release planning
+
+- [CHANGELOG.md](./CHANGELOG.md) — version history and **0.2.0** draft.
+- [docs/release-0.2-checklist.md](./docs/release-0.2-checklist.md) — prioritized **P0 / P1 / P2** tasks for the next minor.
+- [docs/github-milestone-0.2.md](./docs/github-milestone-0.2.md) — how to create a **GitHub milestone** and **copy-paste issue** bodies.
+
 ## Quick Start
 
 ```ts
