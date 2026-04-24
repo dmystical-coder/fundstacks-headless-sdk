@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_(Nothing yet.)_
+### Removed
+
+- One-time v0.2 milestone planning docs and `gh-create-issues-0.2.sh` (historical copy lives in git prior to 0.2.1 if needed).
 
 ## [0.2.0] — 2026-04-24
 
