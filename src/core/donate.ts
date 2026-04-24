@@ -1,17 +1,41 @@
 import { DONATE_FUNCTIONS } from "./abi";
 import type { FundstacksClient } from "./client";
+import { FundstacksError } from "./errors";
 import type { BuildDonateTxInput, ContractCallOptions } from "./types";
 
 const ANCHOR_MODE_ANY = 3;
 const POST_CONDITION_MODE_DENY = "deny";
 
-function normalizeUint(
+function parseUintString(
   value: BuildDonateTxInput["campaignId"] | BuildDonateTxInput["amount"]
 ): bigint {
-  return typeof value === "bigint" ? value : BigInt(value);
+  if (typeof value === "bigint") {
+    return value;
+  }
+  try {
+    return BigInt(value);
+  } catch {
+    throw new FundstacksError("Value is not a valid unsigned integer string", "INVALID_UINT_STRING");
+  }
 }
 
-function toSbtcPostCondition(input: BuildDonateTxInput): unknown {
+function parseDonationAmount(value: BuildDonateTxInput["amount"]): bigint {
+  const amount = parseUintString(value);
+  if (amount <= 0n) {
+    throw new FundstacksError("amount must be greater than zero", "INVALID_AMOUNT");
+  }
+  return amount;
+}
+
+function parseCampaignId(value: BuildDonateTxInput["campaignId"]): bigint {
+  const id = parseUintString(value);
+  if (id < 1n) {
+    throw new FundstacksError("campaignId must be at least 1", "INVALID_CAMPAIGN_ID");
+  }
+  return id;
+}
+
+function toSbtcPostCondition(input: BuildDonateTxInput, amount: bigint): unknown {
   if (!input.sbtcAsset) {
     throw new Error(
       "sbtcAsset is required when building an sBTC donation transaction."
@@ -23,7 +47,7 @@ function toSbtcPostCondition(input: BuildDonateTxInput): unknown {
     address: input.senderAddress,
     condition: "eq",
     asset: input.sbtcAsset,
-    amount: normalizeUint(input.amount)
+    amount
   };
 }
 
@@ -52,8 +76,8 @@ function toStxPostCondition(
 }
 
 export function buildDonateTx(client: FundstacksClient, input: BuildDonateTxInput): ContractCallOptions {
-  const campaignId = normalizeUint(input.campaignId);
-  const amount = normalizeUint(input.amount);
+  const campaignId = parseCampaignId(input.campaignId);
+  const amount = parseDonationAmount(input.amount);
   const isStx = input.asset === "stx";
 
   return {
@@ -66,7 +90,7 @@ export function buildDonateTx(client: FundstacksClient, input: BuildDonateTxInpu
     functionArgs: [toUintCv(campaignId), toUintCv(amount)],
     postConditions: isStx
       ? [toStxPostCondition(input.senderAddress, amount)]
-      : [toSbtcPostCondition(input)]
+      : [toSbtcPostCondition(input, amount)]
   };
 }
 
