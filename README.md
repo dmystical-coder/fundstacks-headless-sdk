@@ -18,7 +18,7 @@ npm install @dmystical-coder/fundstacks-headless-sdk
 
 - [CHANGELOG.md](./CHANGELOG.md) — version history and **0.2.0** draft.
 - [docs/release-0.2-checklist.md](./docs/release-0.2-checklist.md) — prioritized **P0 / P1 / P2** tasks for the next minor.
-- [docs/github-milestone-0.2.md](./docs/github-milestone-0.2.md) — how to create a **GitHub milestone** and **copy-paste issue** bodies.
+
 
 ## Quick Start
 
@@ -67,6 +67,14 @@ const txOptions = buildDonateTx(client, {
   Execute donation through a provided wallet client adapter.
 - `DONATE_FUNCTIONS`  
   Function names used by the donation builders.
+- `FundstacksError`  
+  Thrown for validation failures in `buildDonateTx` and `donate` (subclass of `Error` with a `code` string).
+
+| `code` | When |
+| --- | --- |
+| `INVALID_UINT_STRING` | `amount` or `campaignId` could not be parsed as a non-negative integer (e.g. invalid string, unsupported float). |
+| `INVALID_AMOUNT` | Parsed `amount` is zero or negative. |
+| `INVALID_CAMPAIGN_ID` | Parsed `campaignId` is less than 1. |
 
 ## Compatibility
 
